@@ -12,6 +12,35 @@ const tableHead = document.getElementById('table-head');
 
 // --- ESTADO INICIAL DE LA APLICACIÓN ---
 let products = [];
+let currentMode = 'ingreso'; // 'ingreso' or 'salida'
+
+/**
+ * Cambia el modo de inventario.
+ */
+const setMode = (mode) => {
+    currentMode = mode;
+    const ingresoSection = document.getElementById('ingreso-section');
+    const salidaSection = document.getElementById('salida-section');
+    const ingresoBtn = document.getElementById('ingreso-btn');
+    const salidaBtn = document.getElementById('salida-btn');
+
+    if (mode === 'ingreso') {
+        ingresoSection.classList.remove('hidden');
+        salidaSection.classList.add('hidden');
+        ingresoBtn.classList.add('bg-gradient-to-r', 'from-sky-500', 'to-emerald-500');
+        ingresoBtn.classList.remove('bg-gray-500');
+        salidaBtn.classList.remove('bg-gradient-to-r', 'from-red-500', 'to-orange-500');
+        salidaBtn.classList.add('bg-gray-500');
+    } else {
+        ingresoSection.classList.add('hidden');
+        salidaSection.classList.remove('hidden');
+        salidaBtn.classList.add('bg-gradient-to-r', 'from-red-500', 'to-orange-500');
+        salidaBtn.classList.remove('bg-gray-500');
+        ingresoBtn.classList.remove('bg-gradient-to-r', 'from-sky-500', 'to-emerald-500');
+        ingresoBtn.classList.add('bg-gray-500');
+    }
+    renderTable();
+};
 
 /**
  * Muestra un mensaje de error temporal.
@@ -42,14 +71,24 @@ const renderTable = () => {
         const row = document.createElement('tr');
         row.className = 'border-b border-white/10 hover:bg-white/5 transition-colors duration-200';
         row.setAttribute('data-id', product.id);
+        let actionsHtml = `
+            <button class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors duration-200 mr-2">
+                Eliminar
+            </button>
+        `;
+        if (currentMode === 'salida') {
+            actionsHtml += `
+                <button class="edit-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-colors duration-200">
+                    Editar Cantidad
+                </button>
+            `;
+        }
         row.innerHTML = `
             <td class="p-4">${product.name}</td>
             <td class="p-4">${product.code}</td>
-            <td class="p-4 text-right">${product.quantity}</td>
+            <td class="p-4 text-right quantity-cell" data-quantity="${product.quantity}">${product.quantity}</td>
             <td class="p-4 text-center">
-                <button class="delete-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition-colors duration-200">
-                    Eliminar
-                </button>
+                ${actionsHtml}
             </td>
         `;
         tableBody.appendChild(row);
@@ -101,6 +140,25 @@ const deleteProduct = async (docId) => {
     }
 };
 
+/**
+ * Actualiza la cantidad de un producto en Firestore.
+ */
+const updateProductQuantity = async (docId, newQuantity) => {
+    if (newQuantity < 0) {
+        showError('La cantidad no puede ser negativa.');
+        return;
+    }
+    try {
+        await firebase.firestore().collection('inventario').doc(docId).update({
+            quantity: newQuantity
+        });
+        await loadProducts(); // Recarga la lista
+    } catch (error) {
+        console.error('Error al actualizar cantidad:', error);
+        showError('Error al actualizar cantidad: ' + error.message);
+    }
+};
+
 // --- MANEJADORES DE EVENTOS ---
 
 // Manejador para agregar un producto
@@ -130,9 +188,8 @@ form.addEventListener('submit', async (e) => {
 
 // Manejador para eliminar un producto (usando delegación de eventos)
 tableBody.addEventListener('click', async (e) => {
-    const deleteButton = e.target.closest('.delete-btn');
-    if (deleteButton) {
-        const row = deleteButton.closest('tr');
+    if (e.target.closest('.delete-btn')) {
+        const row = e.target.closest('tr');
         const docId = row.getAttribute('data-id');
         
         // Aplica animación de salida
@@ -142,11 +199,46 @@ tableBody.addEventListener('click', async (e) => {
         setTimeout(async () => {
             await deleteProduct(docId);
         }, 500);
+    } else if (e.target.closest('.edit-btn')) {
+        const row = e.target.closest('tr');
+        const docId = row.getAttribute('data-id');
+        const quantityCell = row.querySelector('.quantity-cell');
+        const currentQuantity = parseInt(quantityCell.dataset.quantity);
+        
+        // Reemplazar con input
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.value = currentQuantity;
+        input.className = 'w-16 bg-slate-800/50 border border-slate-700 rounded px-2 py-1 text-right';
+        input.min = '0';
+        quantityCell.innerHTML = '';
+        quantityCell.appendChild(input);
+        input.focus();
+        
+        const saveEdit = async () => {
+            const newQuantity = parseInt(input.value);
+            if (!isNaN(newQuantity)) {
+                await updateProductQuantity(docId, newQuantity);
+            }
+        };
+        
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keypress', (ev) => {
+            if (ev.key === 'Enter') {
+                saveEdit();
+                input.blur();
+            }
+        });
     }
 });
 
+// Manejadores para botones de modo
+document.getElementById('ingreso-btn').addEventListener('click', () => setMode('ingreso'));
+document.getElementById('salida-btn').addEventListener('click', () => setMode('salida'));
+
 // --- RENDERIZADO INICIAL ---
 loadProducts();
+setMode('ingreso'); // Modo inicial
 
 // --- MANEJADOR PARA SUBIR EXCEL ---
 const excelFileInput = document.getElementById('excel-file');
