@@ -58,34 +58,55 @@
                 Gestor de Inventario
             </h1>
 
-            <!-- Formulario -->
+            <!-- Modo de Inventario -->
             <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-2xl border border-white/10 p-6 md:p-8 mb-8 transition-all duration-300">
-                <form id="product-form" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                    <div class="md:col-span-1">
-                        <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
-                        <input id="name" type="text" placeholder="Ej: Monitor" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
+                <div class="flex justify-center space-x-4 mb-6">
+                    <button id="ingreso-btn" class="bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-sky-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-sky-400">
+                        Ingreso
+                    </button>
+                    <button id="salida-btn" class="bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-red-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-red-400">
+                        Salida
+                    </button>
+                </div>
+                <div id="ingreso-section">
+                    <form id="product-form" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                        <div class="md:col-span-1">
+                            <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Nombre</label>
+                            <input id="name" type="text" placeholder="Ej: Monitor" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label for="code" class="block text-sm font-medium text-gray-300 mb-2">Código</label>
+                            <input id="code" type="text" placeholder="Ej: PROD-001" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label for="quantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad</label>
+                            <input id="quantity" type="number" placeholder="Ej: 25" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
+                        </div>
+                        <div class="md:col-span-1">
+                            <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-sky-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-sky-400">
+                                Agregar Producto
+                            </button>
+                        </div>
+                    </form>
+                    <p id="error-message" class="text-red-400 text-center mt-4 text-sm h-5"></p>
+
+                    <!-- Upload Excel -->
+                    <div class="mt-6">
+                        <label for="excel-file" class="block text-sm font-medium text-gray-300 mb-2">Subir Excel (columnas: Nombre, Código, Cantidad)</label>
+                        <input id="excel-file" type="file" accept=".xlsx,.xls" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
+                        <p class="text-xs text-gray-400 mt-1">El archivo se procesará y los datos se agregarán al inventario.</p>
                     </div>
-                    <div class="md:col-span-1">
-                        <label for="code" class="block text-sm font-medium text-gray-300 mb-2">Código</label>
-                        <input id="code" type="text" placeholder="Ej: PROD-001" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label for="quantity" class="block text-sm font-medium text-gray-300 mb-2">Cantidad</label>
-                        <input id="quantity" type="number" placeholder="Ej: 25" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
-                    </div>
-                    <div class="md:col-span-1">
-                        <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-sky-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-sky-400">
-                            Agregar Producto
+                </div>
+                <div id="salida-section" class="hidden">
+                    <p class="text-center text-gray-300 mb-4">Modo Salida: Selecciona items con checkboxes, luego usa "Procesar Salida" para registrar salidas múltiples.</p>
+                    <div class="flex justify-center space-x-4 mb-4">
+                        <button id="process-salida-btn" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-purple-400">
+                            Procesar Salida
+                        </button>
+                        <button id="view-salidas-btn" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-indigo-500/40 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-400">
+                            Ver Historial de Salidas
                         </button>
                     </div>
-                </form>
-                <p id="error-message" class="text-red-400 text-center mt-4 text-sm h-5"></p>
-
-                <!-- Upload Excel -->
-                <div class="mt-6">
-                    <label for="excel-file" class="block text-sm font-medium text-gray-300 mb-2">Subir Excel (columnas: Nombre, Código, Cantidad)</label>
-                    <input id="excel-file" type="file" accept=".xlsx,.xls" class="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 text-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-300">
-                    <p class="text-xs text-gray-400 mt-1">El archivo se procesará y los datos se agregarán al inventario.</p>
                 </div>
             </div>
 
